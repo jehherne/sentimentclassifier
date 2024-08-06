@@ -1,0 +1,61 @@
+import csv
+
+def strip_punctuation(string:str)->str:
+    punctuation_chars = ["'", '"', ",", ".", "!", ":", ";", '#', '@','?','…','-']
+    for character in string:
+        for punctuation in punctuation_chars:
+            if character==punctuation:
+                string = string.replace(character,"")
+    return string
+
+def get_pos(string:str)->int:
+    words_hit = 0
+    positive_words = []
+    with open("positive_words.txt") as pos_f:
+        for lin in pos_f:
+            if lin[0]!=";" or lin[0]!="\n":
+                positive_words.append(lin.strip())
+    string = string.lower()
+    words = string.split()
+    for each_word in words:
+        for each_positive_word in positive_words:
+            if each_word==each_positive_word:
+                words_hit+=1
+    return words_hit
+
+def get_neg(string:str)->int:
+    words_hit = 0
+    negative_words = []
+    with open("negative_words.txt") as pos_f:
+        for lin in pos_f:
+            if lin[0] != ';' and lin[0] != '\n':
+                negative_words.append(lin.strip())
+    string = string.lower()
+    words = string.split()
+    for each_word in words:
+        for each_negative_word in negative_words:
+            if each_word==each_negative_word:
+                words_hit+=1
+    return words_hit
+
+def main():
+    with open("project_twitter_data.csv") as file:
+        reader = csv.reader(file)
+        next(reader)
+        csv_line = []
+        for each_line in reader:
+            tweet_text = strip_punctuation(each_line[0])
+            num_positive = get_pos(tweet_text)
+            num_negative = get_neg(tweet_text)
+            net_score = num_positive-num_negative
+            num_retweets = int(each_line[1])
+            num_reply = int(each_line[2])
+            line = (num_positive,num_negative,net_score,num_retweets,num_reply)
+            csv_line.append(line)
+    with open("resulting_data.csv","w",newline="") as file:
+        writer = csv.writer(file)
+        header = ["Number of Positive Words","Number of Negative Words","Net Score","Number of Retweets","Number of Replies"]
+        writer.writerow(header)
+        for each_data in csv_line:
+            writer.writerow(each_data)
+main()
